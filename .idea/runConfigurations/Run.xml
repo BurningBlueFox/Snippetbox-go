@@ -3,9 +3,11 @@
     <module name="snippetbox" />
     <working_directory value="$PROJECT_DIR$" />
     <kind value="PACKAGE" />
-    <package value="github.com/BurningBlueFox/letsgo" />
+    <package value="github.com/BurningBlueFox/letsgo/cmd/web" />
     <directory value="$PROJECT_DIR$" />
     <filePath value="$PROJECT_DIR$" />
-    <method v="2" />
+    <method v="2">
+      <option name="LaunchBrowser.Before.Run" url="http://localhost:4000" />
+    </method>
   </configuration>
 </component>
