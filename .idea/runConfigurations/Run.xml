@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <output_file path="$PROJECT_DIR$/log.log" is_save="true" />
     <module name="snippetbox" />
     <working_directory value="$PROJECT_DIR$" />
     <kind value="PACKAGE" />
