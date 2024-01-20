@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"net/http"
 	"os"
@@ -21,18 +22,29 @@ func getLogger() *slog.Logger {
 
 type application struct {
 	logger *slog.Logger
+	db     *pgxpool.Pool
 }
 
 func main() {
 	logger := getLogger()
 	addr := getAddr()
+	db, err := getDb()
+	defer db.Close()
+
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	} else {
+		logDbConnection(db, logger)
+	}
 
 	app := &application{
 		logger: logger,
+		db:     db,
 	}
 
 	logger.Info("starting server", slog.String("addr", *addr))
-	err := http.ListenAndServe(*addr, app.routes())
+	err = http.ListenAndServe(*addr, app.routes())
 	logger.Error(err.Error())
 	os.Exit(1)
 }
