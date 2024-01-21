@@ -1,10 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"github.com/BurningBlueFox/letsgo/internal/models"
 	"net/http"
 	"strconv"
-	"text/template"
 )
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
@@ -13,25 +14,35 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	files := []string{
-		"./ui/html/base.tmpl",
-		"./ui/html/partials/nav.tmpl",
-		"./ui/html/pages/home.tmpl",
-	}
+	//files := []string{
+	//	"./ui/html/base.tmpl",
+	//	"./ui/html/partials/nav.tmpl",
+	//	"./ui/html/pages/home.tmpl",
+	//}
 
-	ts, err := template.ParseFiles(files...)
+	//ts, err := template.ParseFiles(files...)
 
+	//if err != nil {
+	//	app.serverError(w, r, err)
+	//	return
+	//}
+
+	snippets, err := app.snippetsModel.Latest(5)
 	if err != nil {
 		app.serverError(w, r, err)
 		return
 	}
 
-	err = ts.ExecuteTemplate(w, "base", nil)
-
-	if err != nil {
-		app.serverError(w, r, err)
-		return
+	for _, snippet := range snippets {
+		fmt.Fprintf(w, "%+v\n", snippet)
 	}
+
+	//err = ts.ExecuteTemplate(w, "base", nil)
+	//
+	//if err != nil {
+	//	app.serverError(w, r, err)
+	//	return
+	//}
 	app.logger.Info("served home")
 }
 
@@ -42,7 +53,18 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
-	fmt.Fprintf(w, "Display a specific snippet with id %d...", id)
+
+	snippet, err := app.snippetsModel.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, r, err)
+		}
+		return
+	}
+
+	fmt.Fprintf(w, "%+v", snippet)
 	app.logger.Info("served view", "ID", id)
 }
 

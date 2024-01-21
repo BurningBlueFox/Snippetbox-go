@@ -2,6 +2,8 @@ package models
 
 import (
 	"context"
+	"errors"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
 )
@@ -41,15 +43,20 @@ func (model *SnippetModel) Insert(title string, content string, daysToExpire uin
 // Returns the snippet pointer if found one or error entry was not found
 func (model *SnippetModel) Get(id int) (*Snippet, error) {
 
-	query := "SELECT id, title, content, created, expires FROM snippets WHERE id = $1;"
+	query := "SELECT id, title, content, created, expires FROM snippets WHERE expires > now() AND id = $1;"
 
 	row := model.DB.QueryRow(context.Background(), query, id)
 	snippet := &Snippet{}
 
 	err := row.Scan(&snippet.ID, &snippet.Title, &snippet.Content, &snippet.Created, &snippet.Expires)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNoRecord
+		}
+
 		return nil, err
 	}
+
 	return snippet, nil
 }
 
@@ -57,10 +64,14 @@ func (model *SnippetModel) Get(id int) (*Snippet, error) {
 // Or less than that if there isn't enough entries
 // Returns error if any error occurred
 func (model *SnippetModel) Latest(amount int) ([]Snippet, error) {
-	query := "SELECT id, title, content, created, expires FROM snippets ORDER BY created ASC LIMIT $1;"
+	query := "SELECT id, title, content, created, expires FROM snippets WHERE expires > now() ORDER BY created DESC LIMIT $1;"
 
 	rows, err := model.DB.Query(context.Background(), query, amount)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNoRecord
+		}
+
 		return nil, err
 	}
 	defer rows.Close()
