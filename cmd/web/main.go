@@ -2,16 +2,15 @@ package main
 
 import (
 	"flag"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/BurningBlueFox/letsgo/internal/models"
 	"log/slog"
 	"net/http"
 	"os"
 )
 
 func getAddr() *string {
-	addr := flag.String("addr", ":4000", "HTTP network address")
-	flag.Parse()
-	return addr
+	value := flag.String("addr", ":4000", "HTTP network address")
+	return value
 }
 
 func getLogger() *slog.Logger {
@@ -21,30 +20,26 @@ func getLogger() *slog.Logger {
 }
 
 type application struct {
-	logger *slog.Logger
-	db     *pgxpool.Pool
+	logger        *slog.Logger
+	snippetsModel *models.SnippetModel
 }
 
 func main() {
 	logger := getLogger()
 	addr := getAddr()
-	db, err := getDb()
+	dbSetting := getDbSettings()
+	flag.Parse()
+
+	db := getDbOrExit(dbSetting, logger)
 	defer db.Close()
 
-	if err != nil {
-		logger.Error(err.Error())
-		os.Exit(1)
-	} else {
-		logDbConnection(db, logger)
-	}
-
 	app := &application{
-		logger: logger,
-		db:     db,
+		logger:        logger,
+		snippetsModel: &models.SnippetModel{DB: db},
 	}
 
 	logger.Info("starting server", slog.String("addr", *addr))
-	err = http.ListenAndServe(*addr, app.routes())
+	err := http.ListenAndServe(*addr, app.routes())
 	logger.Error(err.Error())
 	os.Exit(1)
 }
