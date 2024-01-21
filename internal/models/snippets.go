@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"time"
 )
@@ -25,16 +24,9 @@ type SnippetModel struct {
 // and an error if the insertion fails.
 func (model *SnippetModel) Insert(title string, content string, daysToExpire uint) (int, error) {
 
-	created := time.Now()
-	expires := created.Add(time.Duration(daysToExpire) * 24 * time.Hour)
+	query := "INSERT INTO snippets(title, content, created, expires) VALUES ($1, $2, now(), now() + make_interval(days := $3)) RETURNING id;"
 
-	query := fmt.Sprintf("INSERT INTO snippets(title, content, created, expires) VALUES (%s, %s, %s, %s) RETURNING id;",
-		title,
-		content,
-		created,
-		expires)
-
-	row := model.DB.QueryRow(context.Background(), query)
+	row := model.DB.QueryRow(context.Background(), query, title, content, daysToExpire)
 
 	var id int
 	err := row.Scan(&id)
@@ -49,10 +41,9 @@ func (model *SnippetModel) Insert(title string, content string, daysToExpire uin
 // Returns the snippet pointer if found one or error entry was not found
 func (model *SnippetModel) Get(id int) (*Snippet, error) {
 
-	query := fmt.Sprintf("SELECT id, title, content, created, expires FROM snippets WHERE id = %d;",
-		id)
+	query := "SELECT id, title, content, created, expires FROM snippets WHERE id = $1;"
 
-	row := model.DB.QueryRow(context.Background(), query)
+	row := model.DB.QueryRow(context.Background(), query, id)
 	snippet := &Snippet{}
 
 	err := row.Scan(&snippet.ID, &snippet.Title, &snippet.Content, &snippet.Created, &snippet.Expires)
@@ -66,10 +57,9 @@ func (model *SnippetModel) Get(id int) (*Snippet, error) {
 // Or less than that if there isn't enough entries
 // Returns error if any error occurred
 func (model *SnippetModel) Latest(amount int) ([]Snippet, error) {
-	query := fmt.Sprintf("SELECT id, title, content, created, expires FROM snippets ORDER BY created ASC LIMIT %d;",
-		amount)
+	query := "SELECT id, title, content, created, expires FROM snippets ORDER BY created ASC LIMIT $1;"
 
-	rows, err := model.DB.Query(context.Background(), query)
+	rows, err := model.DB.Query(context.Background(), query, amount)
 	if err != nil {
 		return nil, err
 	}
