@@ -49,6 +49,7 @@ func (model *SnippetModel) Get(id int) (*Snippet, error) {
 	snippet := &Snippet{}
 
 	err := row.Scan(&snippet.ID, &snippet.Title, &snippet.Content, &snippet.Created, &snippet.Expires)
+
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrNoRecord

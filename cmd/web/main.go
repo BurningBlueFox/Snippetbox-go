@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/BurningBlueFox/letsgo/internal/models"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
@@ -22,6 +23,7 @@ func getLogger() *slog.Logger {
 type application struct {
 	logger        *slog.Logger
 	snippetsModel *models.SnippetModel
+	templateCache map[string]*template.Template
 }
 
 func main() {
@@ -33,13 +35,20 @@ func main() {
 	db := getDbOrExit(dbSetting, logger)
 	defer db.Close()
 
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		logger.Error(err.Error())
+		return
+	}
+
 	app := &application{
 		logger:        logger,
 		snippetsModel: &models.SnippetModel{DB: db},
+		templateCache: templateCache,
 	}
 
 	logger.Info("starting server", slog.String("addr", *addr))
-	err := http.ListenAndServe(*addr, app.routes())
+	err = http.ListenAndServe(*addr, app.routes())
 	logger.Error(err.Error())
 	os.Exit(1)
 }
