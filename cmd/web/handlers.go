@@ -23,8 +23,6 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Snippets = snippets
 	app.render(w, r, http.StatusOK, "home.tmpl", data)
-
-	app.logger.Info("served home")
 }
 
 func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
@@ -48,8 +46,6 @@ func (app *application) snippetView(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Snippet = snippet
 	app.render(w, r, http.StatusOK, "view.tmpl", data)
-
-	app.logger.Info("served view", "ID", id)
 }
 
 func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
@@ -70,5 +66,4 @@ func (app *application) snippetCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view?id=%d", id), http.StatusSeeOther)
-	app.logger.Info("served create")
 }
