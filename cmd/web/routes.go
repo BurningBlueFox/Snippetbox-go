@@ -17,6 +17,6 @@ func (app *application) routes() http.Handler {
 	//Middleware setup
 	var secureHeadersMiddleware = secureHeaders(mux)
 	var logRequestMiddleware = app.logRequest(secureHeadersMiddleware)
-
-	return logRequestMiddleware
+	var recoverPanicMiddleware = app.recoverPanic(logRequestMiddleware)
+	return recoverPanicMiddleware
 }
