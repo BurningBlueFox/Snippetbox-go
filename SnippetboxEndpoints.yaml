@@ -1,0 +1,40 @@
+openapi: 3.0.3
+info:
+  title: Snippetbox
+  description: Snippetbox
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000/
+    description: New server
+paths:
+  /:
+    get:
+      description: Home
+      responses:
+        200:
+          description: Last created snippets
+          content:
+            text/html:
+  /snippet/view/{id}:
+    get:
+      description: Snippet view
+      responses:
+        200:
+          description: Retrieves the snippet in the id specified
+          content:
+            text/html:
+  /snippet/create:
+    get:
+      description: Snippet create form
+      responses:
+        200:
+          description: Retrieves the snippet create form
+          content:
+            text/html:
+    post:
+      description: Snippet create
+      responses:
+        200:
+          description: Creates a new snippet
+          content:
+            text/html:
